@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import useAuthStore from '../lib/authStore';
-import api from '../lib/api';
+import useAuthStore from '../../lib/authStore';
+import api from '../../lib/api';
 
 export default function Orders() {
   const router = useRouter();

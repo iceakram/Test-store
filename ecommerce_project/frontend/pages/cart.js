@@ -5,6 +5,8 @@ import useAuthStore from '../lib/authStore';
 import api from '../lib/api';
 import Image from 'next/image';
 
+const MAX_QUANTITY_PER_ITEM = 10;
+
 export default function Cart() {
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
@@ -130,7 +132,7 @@ export default function Cart() {
                       onChange={(e) => updateQuantity(item.id, parseInt(e.target.value))}
                       className="input w-20"
                     >
-                      {[...Array(Math.min(10, item.product.quantity))].map((_, i) => (
+                      {[...Array(Math.min(MAX_QUANTITY_PER_ITEM, item.product.quantity))].map((_, i) => (
                         <option key={i + 1} value={i + 1}>
                           {i + 1}
                         </option>

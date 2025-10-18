@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import useAuthStore from '../lib/authStore';
 import api from '../lib/api';
@@ -9,6 +9,7 @@ export default function Checkout() {
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     shippingAddress: {
       street: '',
@@ -62,6 +63,7 @@ export default function Checkout() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setProcessing(true);
+    setError('');
 
     try {
       const response = await api.post('/orders', formData);
@@ -71,7 +73,7 @@ export default function Checkout() {
       router.push(`/orders/${order.id}`);
     } catch (error) {
       console.error('Error creating order:', error);
-      alert(error.response?.data?.message || 'Failed to create order');
+      setError(error.response?.data?.message || 'Failed to create order');
     } finally {
       setProcessing(false);
     }
@@ -84,6 +86,15 @@ export default function Checkout() {
       0
     );
   };
+
+  const orderSummary = useMemo(() => {
+    const subtotal = calculateTotal();
+    const shipping = subtotal > 100 ? 0 : 10;
+    const tax = subtotal * 0.1;
+    const total = subtotal + shipping + tax;
+    
+    return { subtotal, shipping, tax, total };
+  }, [cart]);
 
   if (loading) {
     return (
@@ -106,14 +117,15 @@ export default function Checkout() {
     );
   }
 
-  const subtotal = calculateTotal();
-  const shipping = subtotal > 100 ? 0 : 10;
-  const tax = subtotal * 0.1;
-  const total = subtotal + shipping + tax;
-
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <h1 className="text-3xl font-bold text-gray-900 mb-8">Checkout</h1>
+
+      {error && (
+        <div className="mb-6 rounded-md bg-red-50 p-4">
+          <p className="text-sm text-red-800">{error}</p>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -256,22 +268,22 @@ export default function Checkout() {
               <div className="border-t pt-4 space-y-2 mb-4">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Subtotal</span>
-                  <span className="font-semibold">${subtotal.toFixed(2)}</span>
+                  <span className="font-semibold">${orderSummary.subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Shipping</span>
-                  <span className="font-semibold">{shipping === 0 ? 'FREE' : `$${shipping.toFixed(2)}`}</span>
+                  <span className="font-semibold">{orderSummary.shipping === 0 ? 'FREE' : `$${orderSummary.shipping.toFixed(2)}`}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Tax</span>
-                  <span className="font-semibold">${tax.toFixed(2)}</span>
+                  <span className="font-semibold">${orderSummary.tax.toFixed(2)}</span>
                 </div>
               </div>
 
               <div className="border-t pt-4 mb-6">
                 <div className="flex justify-between text-lg font-bold">
                   <span>Total</span>
-                  <span>${total.toFixed(2)}</span>
+                  <span>${orderSummary.total.toFixed(2)}</span>
                 </div>
               </div>
 

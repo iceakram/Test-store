@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import api from '../lib/api';
-import ProductCard from '../components/ProductCard';
+import api from '../../lib/api';
+import ProductCard from '../../components/ProductCard';
 
 export default function Products() {
   const router = useRouter();

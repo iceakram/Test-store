@@ -4,11 +4,19 @@ const { User, Product, Category, Coupon } = require('../models');
 
 const seedDatabase = async () => {
   try {
+    // Safety check for production environment
+    if (process.env.NODE_ENV === 'production') {
+      console.error('ERROR: Cannot run seed script in production environment!');
+      console.error('This would drop all existing data.');
+      process.exit(1);
+    }
+
     console.log('Connecting to database...');
     await sequelize.authenticate();
     
     console.log('Syncing database...');
-    await sequelize.sync({ force: true }); // WARNING: This will drop all tables
+    console.log('WARNING: This will drop all existing tables and data!');
+    await sequelize.sync({ force: true });
     
     console.log('Creating categories...');
     const categories = await Category.bulkCreate([
@@ -44,8 +52,8 @@ const seedDatabase = async () => {
     
     console.log('Creating admin user...');
     await User.create({
-      email: 'admin@ecommerce.com',
-      password: 'admin123',
+      email: process.env.ADMIN_EMAIL || 'admin@ecommerce.com',
+      password: process.env.ADMIN_PASSWORD || 'admin123',
       firstName: 'Admin',
       lastName: 'User',
       role: 'admin',
@@ -55,8 +63,8 @@ const seedDatabase = async () => {
     
     console.log('Creating test customer...');
     await User.create({
-      email: 'customer@test.com',
-      password: 'customer123',
+      email: process.env.TEST_CUSTOMER_EMAIL || 'customer@test.com',
+      password: process.env.TEST_CUSTOMER_PASSWORD || 'customer123',
       firstName: 'John',
       lastName: 'Doe',
       phone: '+1234567890',
